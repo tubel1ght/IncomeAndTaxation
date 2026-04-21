@@ -34,6 +34,9 @@
       "expo-router",
       "expo-asset"
     ],
-    "scheme": "income-strategy-app"
+    "scheme": "income-strategy-app",
+    "experiments": {
+      "baseUrl": "/IncomeAndTaxation"
+    }
   }
 }
