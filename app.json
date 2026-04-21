@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourname.incomestrategapp"
@@ -25,10 +27,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "baseUrl": "/IncomeAndTaxation"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-asset"
     ],
     "scheme": "income-strategy-app"
   }

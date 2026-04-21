@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   useWindowDimensions,
-  Platform,
 } from 'react-native';
 import { SliderInput } from '../src/components/SliderInput';
 import { StrategyToggle } from '../src/components/StrategyToggle';
@@ -47,41 +46,43 @@ export default function HomeScreen() {
     [inputs, activeStrategies],
   );
 
-  const yMax = useMemo(() => computeGlobalYMax(strategies), [strategies]);
-  const winner = useMemo(() => getWinningStrategy(strategies), [strategies]);
+  const yMax    = useMemo(() => computeGlobalYMax(strategies), [strategies]);
+  const winner  = useMemo(() => getWinningStrategy(strategies), [strategies]);
 
-  const CHART_WIDTH = isWide ? Math.floor((width - 48) / Math.min(strategies.length, 3)) - 16 : 330;
+  // Size charts to fill available width without requiring horizontal scroll on desktop
+  const chartWidth = isWide && strategies.length > 0
+    ? Math.min(310, Math.max(200, Math.floor((width - 52) / strategies.length) - 14))
+    : 290;
 
   const pct = (v: number) => `${v.toFixed(0)}%`;
+  const yrs = (v: number) => `${v} yrs`;
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+
+      {/* ── Subtitle ── */}
+      <View style={styles.subtitleCard}>
+        <Text style={styles.subtitleText}>
+          Every dollar is taxed once — no more, no less.{'\n'}But you can control <Text style={styles.subtitleEmphasis}>when</Text> and at <Text style={styles.subtitleEmphasis}>what rate</Text>.
+        </Text>
+      </View>
 
       {/* ── Inputs ── */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Inputs</Text>
 
-        <View style={[styles.inputGrid, isWide && styles.inputGridWide]}>
-          <View style={styles.inputCol}>
-            <SliderInput label="Gross Income" value={inputs.income} min={0} max={1_000_000} step={1_000} onChange={set('income')} />
-            <SliderInput label="Annual Expenses" value={inputs.expenses} min={0} max={inputs.income} step={1_000} onChange={set('expenses')} />
-          </View>
-          <View style={styles.inputCol}>
-            <SliderInput label="Current Tax Rate" value={inputs.currentTaxRate} min={0} max={50} step={1} format={pct} onChange={set('currentTaxRate')} />
-            <SliderInput label="Future Tax Rate" value={inputs.futureTaxRate} min={0} max={50} step={1} format={pct} onChange={set('futureTaxRate')} />
-          </View>
-          <View style={styles.inputCol}>
-            <SliderInput label="Annual Return" value={inputs.investmentRate} min={0} max={15} step={0.5} format={pct} onChange={set('investmentRate')} />
-            <SliderInput label="Years Invested" value={inputs.years} min={1} max={40} step={1} format={(v) => `${v} yrs`} onChange={set('years')} />
-          </View>
-          <View style={styles.inputCol}>
-            <SliderInput label="Regular 401(k) Limit" value={inputs.regular401kLimit} min={0} max={30_000} step={500} onChange={set('regular401kLimit')} />
-            <SliderInput label="Roth 401(k) Limit" value={inputs.roth401kLimit} min={0} max={30_000} step={500} onChange={set('roth401kLimit')} />
-          </View>
-          <View style={styles.inputCol}>
-            <SliderInput label="Backdoor Roth Limit" value={inputs.rothBackdoorLimit} min={0} max={90_000} step={1_000} onChange={set('rothBackdoorLimit')} />
-            <SliderInput label="Capital Gains Tax" value={inputs.capitalGainsTaxRate} min={0} max={30} step={1} format={pct} onChange={set('capitalGainsTaxRate')} />
-          </View>
+        {/* Sliders always stacked vertically in a single column */}
+        <View style={styles.sliderList}>
+          <SliderInput label="Gross Income"           value={inputs.income}              min={0}       max={1_000_000} step={1_000} onChange={set('income')} />
+          <SliderInput label="Annual Expenses"        value={inputs.expenses}            min={0}       max={inputs.income} step={1_000} onChange={set('expenses')} />
+          <SliderInput label="Current Tax Rate"       value={inputs.currentTaxRate}      min={0}       max={50}     step={1}     format={pct} onChange={set('currentTaxRate')} />
+          <SliderInput label="Future Tax Rate"        value={inputs.futureTaxRate}       min={0}       max={50}     step={1}     format={pct} onChange={set('futureTaxRate')} />
+          <SliderInput label="Annual Return"          value={inputs.investmentRate}      min={0}       max={15}     step={0.5}   format={pct} onChange={set('investmentRate')} />
+          <SliderInput label="Years Invested"         value={inputs.years}               min={1}       max={40}     step={1}     format={yrs} onChange={set('years')} />
+          <SliderInput label="Regular 401(k) Limit"  value={inputs.regular401kLimit}    min={0}       max={30_000} step={500}   onChange={set('regular401kLimit')} />
+          <SliderInput label="Roth 401(k) Limit"     value={inputs.roth401kLimit}       min={0}       max={30_000} step={500}   onChange={set('roth401kLimit')} />
+          <SliderInput label="Backdoor Roth Limit"   value={inputs.rothBackdoorLimit}   min={0}       max={90_000} step={1_000} onChange={set('rothBackdoorLimit')} />
+          <SliderInput label="Capital Gains Tax"     value={inputs.capitalGainsTaxRate} min={0}       max={30}     step={1}     format={pct} onChange={set('capitalGainsTaxRate')} />
         </View>
 
         <StrategyToggle active={activeStrategies} onChange={setActiveStrategies} />
@@ -94,8 +95,8 @@ export default function HomeScreen() {
           <Text style={styles.empty}>Select at least one strategy above.</Text>
         ) : (
           <>
-            <Text style={styles.subtitle}>
-              The starred (★) strategy has the highest keepable amount.
+            <Text style={styles.chartSubtitle}>
+              Starred (★) strategy keeps the most after tax.
             </Text>
             <ScrollView
               horizontal
@@ -112,7 +113,7 @@ export default function HomeScreen() {
                   connectorSpecs={s.connectorSpecs}
                   yAxisMax={yMax}
                   isWinner={s.title === winner}
-                  width={CHART_WIDTH}
+                  width={chartWidth}
                 />
               ))}
             </ScrollView>
@@ -126,6 +127,7 @@ export default function HomeScreen() {
           <Legend strategies={strategies} />
         </View>
       )}
+
     </ScrollView>
   );
 }
@@ -138,7 +140,29 @@ const styles = StyleSheet.create({
   content: {
     padding: 12,
     paddingBottom: 40,
-    gap: 12,
+    gap: 10,
+  },
+  subtitleCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4A90D9',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  subtitleText: {
+    fontSize: 14,
+    color: '#444',
+    lineHeight: 22,
+  },
+  subtitleEmphasis: {
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
   section: {
     backgroundColor: '#ffffff',
@@ -156,29 +180,18 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     marginBottom: 12,
   },
-  subtitle: {
+  sliderList: {
+    marginBottom: 14,
+  },
+  chartSubtitle: {
     fontSize: 12,
     color: '#666',
     marginBottom: 10,
     fontStyle: 'italic',
   },
-  inputGrid: {
-    gap: 4,
-    marginBottom: 14,
-  },
-  inputGridWide: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  inputCol: {
-    flex: 1,
-    minWidth: 280,
-  },
   chartsRow: {
     flexDirection: 'row',
     paddingBottom: 8,
-    gap: 0,
   },
   empty: {
     fontSize: 14,
